@@ -140,7 +140,7 @@
             }
             requestAnimationFrame(scrollStep);
             uttr.onend = () => { setTimeout(showDoor, 1000); };
-            window.speechSynthesis.speak(uttr);
+            //window.speechSynthesis.speak(uttr);
             setTimeout(() => { if(swWin.style.display !== 'none') showDoor(); }, 30000);
         }
 
