@@ -11,53 +11,47 @@
             font-family: 'Helvetica Neue', 'Arial', 'Hiragino Sans', sans-serif;
         }
 
-        /* 最後の画像：神秘的な後光をまとう */
+        /* フィナーレ画像 */
         #final-image {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0.6);
             width: 80%; max-width: 700px;
             opacity: 0; z-index: 2;
             transition: all 6s ease-in-out;
-            filter: drop-shadow(0 0 50px rgba(0, 255, 0, 0.6));
+            filter: drop-shadow(0 0 50px rgba(0, 255, 0, 0.4));
         }
-        .show-image #final-image {
-            opacity: 1; transform: translate(-50%, -50%) scale(1);
-        }
+        .show-image #final-image { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
         .door-wrapper {
             position: relative; width: 100%; height: 100%;
             perspective: 2500px; z-index: 10;
         }
 
-        /* 神秘的な光を放つ扉 */
+        /* 色のついた重厚な扉 */
         .door {
             position: absolute; top: 0; width: 50%; height: 100%;
-            background: linear-gradient(to right, #050505, #111);
-            border: 2px solid #0f0;
-            /* 神秘的な緑の輝き（外側と内側両方） */
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5), inset 0 0 30px rgba(0, 255, 0, 0.2);
+            /* 深みのあるブルーメタリックのグラデーション */
+            background: linear-gradient(135deg, #0a192f 0%, #020c1b 50%, #000000 100%);
+            border: 3px solid #0f0;
+            /* 扉の表面に光沢と立体感を出す */
+            box-shadow: 
+                inset 0 0 40px rgba(0, 255, 0, 0.2), 
+                0 0 30px rgba(0, 255, 0, 0.3);
             transition: transform 5s cubic-bezier(0.4, 0, 0.2, 1), opacity 4s;
         }
-        .left { 
-            left: 0; transform-origin: left; 
-            border-right: 4px solid #0f0; /* 合わせ目を強調 */
-        }
-        .right { 
-            right: 0; transform-origin: right; 
-            border-left: 4px solid #0f0; 
+        
+        /* 扉の表面にうっすらと反射光のような筋を入れる */
+        .door::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
         }
 
-        /* 扉が開く動作：光を放ちながら消えていく */
-        .open .left { 
-            transform: rotateY(-110deg) translateX(-20px); 
-            opacity: 0; 
-            box-shadow: 0 0 100px rgba(0, 255, 0, 0.8); /* 開く瞬間に光を強く */
-        }
-        .open .right { 
-            transform: rotateY(110deg) translateX(20px); 
-            opacity: 0; 
-            box-shadow: 0 0 100px rgba(0, 255, 0, 0.8);
-        }
+        .left { left: 0; transform-origin: left; border-right: 2px solid #0f0; }
+        .right { right: 0; transform-origin: right; border-left: 2px solid #0f0; }
+
+        /* 開く動作 */
+        .open .left { transform: rotateY(-110deg) translateX(-50px); opacity: 0; }
+        .open .right { transform: rotateY(110deg) translateX(50px); opacity: 0; }
 
         /* 巨大テロップ */
         .crawl-container {
@@ -68,8 +62,7 @@
         }
         .crawl-text {
             color: #ffe81f; font-weight: bold; text-align: center;
-            font-size: 3.5rem;
-            line-height: 1.8;
+            font-size: 3.5rem; line-height: 1.8;
             animation: crawl 45s linear infinite;
             text-shadow: 0 0 20px rgba(255, 232, 31, 0.6);
         }
@@ -121,8 +114,8 @@
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(80, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(350, audioCtx.currentTime + 4);
+        osc.frequency.setValueAtTime(60, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 4);
         gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4);
         osc.connect(gain);
@@ -132,7 +125,6 @@
     }
 
     function playShineSound() {
-        // 輝かしいアルペジオ
         const frequencies = [523.25, 659.25, 783.99, 987.77, 1174.66, 1567.98];
         frequencies.forEach((freq, index) => {
             const osc = audioCtx.createOscillator();
@@ -140,7 +132,7 @@
             osc.type = 'sine';
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (index * 0.1));
             gain.gain.setValueAtTime(0, audioCtx.currentTime + (index * 0.1));
-            gain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + (index * 0.1) + 0.15);
+            gain.gain.linearRampToValueAtTime(0.06, audioCtx.currentTime + (index * 0.1) + 0.15);
             gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 5);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
@@ -160,14 +152,11 @@
 
     function startSequence() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
-
         const message = "2026年。鍵の管理は、マイキー ログへ移行となり、人々はキューアールコードをかざすだけでキーボックスの扉を開いて大幅な管理工数を削減する事になる。さぁ〜未知への扉を開けて笑顔で待っている貴方に手を伸ばそう！ 君に幸あれ！";
         speak(message);
         playOpenSound();
-        
         document.getElementById('wrapper').classList.add('open');
         document.getElementById('title').style.display = 'none';
-
         setTimeout(() => {
             document.getElementById('body-tag').classList.add('show-image');
             document.getElementById('crawl-box').style.transition = 'opacity 3s';
