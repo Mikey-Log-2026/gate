@@ -11,7 +11,7 @@
             font-family: 'Helvetica Neue', 'Arial', 'Hiragino Sans', sans-serif;
         }
 
-        /* 最後の画像 */
+        /* 最後の画像：フィナーレで浮き上がる */
         #final-image {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0.6);
@@ -26,21 +26,33 @@
 
         .door-wrapper {
             position: relative; width: 100%; height: 100%;
-            perspective: 2000px; z-index: 10;
+            perspective: 2500px; z-index: 10;
         }
+
+        /* 重厚感のある扉のデザイン */
         .door {
             position: absolute; top: 0; width: 50%; height: 100%;
-            background-color: #000; 
-            border: 2px solid #0f0;
-            transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1), opacity 3s;
+            /* ダークメタリックなグラデーション */
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 50%, #000000 100%);
+            border: 3px solid #0f0; /* サイバーな縁取り */
+            /* 扉の厚みと立体感を出す内側のシャドウ */
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.9), inset 0 0 10px rgba(15, 255, 0, 0.2);
+            transition: transform 4.5s cubic-bezier(0.7, 0, 0.3, 1), opacity 3.5s;
         }
-        .left { left: 0; transform-origin: left; }
-        .right { right: 0; transform-origin: right; }
+        .left { 
+            left: 0; transform-origin: left; 
+            border-right: 1px solid #0f0; /* 合わせ目 */
+        }
+        .right { 
+            right: 0; transform-origin: right; 
+            border-left: 1px solid #0f0; /* 合わせ目 */
+        }
 
-        .open .left { transform: rotateY(-120deg); opacity: 0; pointer-events: none; }
-        .open .right { transform: rotateY(120deg); opacity: 0; pointer-events: none; }
+        /* 扉が開く動作 */
+        .open .left { transform: rotateY(-115deg); opacity: 0; pointer-events: none; }
+        .open .right { transform: rotateY(115deg); opacity: 0; pointer-events: none; }
 
-        /* テロップの巨大化 */
+        /* 巨大テロップ */
         .crawl-container {
             position: absolute; bottom: -100px; width: 100%;
             display: flex; justify-content: center; z-index: 5;
@@ -49,7 +61,7 @@
         }
         .crawl-text {
             color: #ffe81f; font-weight: bold; text-align: center;
-            font-size: 3.5rem; /* 大きく設定 */
+            font-size: 3.5rem;
             line-height: 1.6;
             animation: crawl 40s linear infinite;
             text-shadow: 0 0 15px rgba(255, 232, 31, 0.5);
@@ -98,53 +110,45 @@
 <script>
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
+    // 扉が開く重厚な音
     function playOpenSound() {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 3);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3);
+        osc.frequency.setValueAtTime(80, audioCtx.currentTime); // 低音から
+        osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 4);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start();
-        osc.stop(audioCtx.currentTime + 3);
+        osc.stop(audioCtx.currentTime + 4);
     }
 
-    // 「君に幸あれ！」の後の、より工夫した輝かしい音
+    // 君に幸あれ！の後の、輝かしく工夫した音
     function playShineSound() {
-        // 美しく響く「メジャーナインス」の和音
-        const frequencies = [523.25, 659.25, 783.99, 987.77, 1174.66]; // C5, E5, G5, B5, D6
-        
+        const frequencies = [523.25, 659.25, 783.99, 987.77, 1174.66, 1567.98]; // C5〜G6
         frequencies.forEach((freq, index) => {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (index * 0.05)); // 少しずらしてアルペジオ風に
-            
-            gain.gain.setValueAtTime(0, audioCtx.currentTime + (index * 0.05));
-            gain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + (index * 0.05) + 0.1);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4);
-            
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (index * 0.08)); 
+            gain.gain.setValueAtTime(0, audioCtx.currentTime + (index * 0.08));
+            gain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + (index * 0.08) + 0.15);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 5);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            
-            osc.start(audioCtx.currentTime + (index * 0.05));
-            osc.stop(audioCtx.currentTime + 5);
+            osc.start(audioCtx.currentTime + (index * 0.08));
+            osc.stop(audioCtx.currentTime + 6);
         });
     }
 
     function speak(msg) {
         const uttr = new SpeechSynthesisUtterance(msg);
         uttr.lang = 'ja-JP';
-        uttr.rate = 1.0;
+        uttr.rate = 0.95; // 落ち着いたトーン
         uttr.pitch = 0.9;
-        
-        uttr.onend = () => {
-            playShineSound();
-        };
+        uttr.onend = () => { playShineSound(); };
         window.speechSynthesis.speak(uttr);
     }
 
@@ -158,12 +162,11 @@
         document.getElementById('wrapper').classList.add('open');
         document.getElementById('title').style.display = 'none';
 
-        // フィナーレ：画像表示タイミングをセリフの長さに合わせて調整
         setTimeout(() => {
             document.getElementById('body-tag').classList.add('show-image');
-            document.getElementById('crawl-box').style.transition = 'opacity 2s';
+            document.getElementById('crawl-box').style.transition = 'opacity 3s';
             document.getElementById('crawl-box').style.opacity = '0';
-        }, 15000); 
+        }, 16000); 
     }
 </script>
 </body>
