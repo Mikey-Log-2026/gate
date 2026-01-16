@@ -2,10 +2,10 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Mikey-log-2026 | Ultimate Gate</title>
+    <title>Mikey-log-2026 | Matrix Gate</title>
     <style>
         body { margin: 0; background: black; overflow: hidden; font-family: 'Courier New', monospace; }
-        canvas { position: fixed; top: 0; left: 0; z-index: 1; } /* マトリックス */
+        canvas { position: fixed; top: 0; left: 0; z-index: 1; }
 
         #main-ui {
             position: relative;
@@ -17,53 +17,48 @@
             height: 100vh;
         }
 
-        /* 扉のギミック */
+        /* 扉と中身の画像 */
         .door-box {
             width: 260px; height: 320px; border: 2px solid #0f0;
-            position: relative; cursor: pointer; background: rgba(0,20,0,0.5);
+            position: relative; cursor: pointer; background: black;
         }
         .door-l, .door-r {
             position: absolute; width: 50%; height: 100%; background: #111;
             border: 1px solid #0f0; transition: 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 15; /* 扉は画像より前 */
         }
         .door-r { right: 0; }
         .open .door-l { transform: translateX(-100%); }
         .open .door-r { transform: translateX(100%); }
 
-        /* 絵の表示エリア（扉の中） */
+        /* 中の絵 (image.PNG) */
         #art-box {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 180px; height: 180px;
-            background: #000; border: 1px solid #0f0;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center;
             z-index: 5;
         }
-        #art-box img { max-width: 100%; max-height: 100%; }
+        #art-box img { max-width: 90%; max-height: 90%; }
 
-        /* テロップ（ニュースのように流れる） */
-        #telop-container {
-            position: fixed; top: 20px; width: 100%; height: 40px;
-            background: rgba(0, 50, 0, 0.7); border-y: 1px solid #0f0;
+        /* ニュース風テロップ */
+        #telop {
+            position: fixed; top: 0; width: 100%; height: 40px;
+            background: rgba(0, 40, 0, 0.8); border-bottom: 1px solid #0f0;
             overflow: hidden; white-space: nowrap; z-index: 20;
         }
-        #telop-text {
+        #telop span {
             display: inline-block; padding-left: 100%;
-            color: #0f0; font-size: 1.5rem; font-weight: bold;
-            animation: telop-scroll 20s linear infinite;
+            color: #0f0; font-size: 1.2rem; line-height: 40px;
+            animation: telop-scroll 15s linear infinite;
         }
         @keyframes telop-scroll { from { transform: translateX(0); } to { transform: translateX(-100%); } }
 
-        /* BTTF風テキスト */
+        /* メッセージ類 */
         .bttf-style {
             font-family: sans-serif; font-style: italic; font-weight: 900;
             color: #ff9e00; text-shadow: 3px 3px #ff0000;
-            font-size: 2.5rem; margin-top: 20px; opacity: 0; transition: 2s;
+            font-size: 2.5rem; margin-top: 30px; opacity: 0; transition: 2s;
         }
-
-        /* 君に幸あれ */
         .bless-msg { color: #fff; font-size: 1.2rem; margin-top: 10px; opacity: 0; transition: 3s; }
-
         .show { opacity: 1 !important; }
     </style>
 </head>
@@ -71,14 +66,14 @@
 
 <canvas id="matrix-bg"></canvas>
 
-<div id="telop-container">
-    <div id="telop-text">WELCOME TO MIKEY-LOG-2026 GALAXY --- SYSTEM INITIALIZED --- PREPARING FOR JUMP ---</div>
+<div id="telop">
+    <span>SYSTEM: MIKEY-LOG-2026 INITIALIZED. READY TO OPEN THE GATE...</span>
 </div>
 
 <div id="main-ui">
     <div id="gate-wrap" class="door-box" onclick="activateGate()">
         <div id="art-box">
-            <span style="color:#0f0">ART WORK</span>
+            <img src="image.PNG" alt="Gate Image">
         </div>
         <div class="door-l"></div>
         <div class="door-r"></div>
@@ -89,12 +84,10 @@
 </div>
 
 <script>
-// --- マトリックス背景 ---
+// --- マトリックス描画 ---
 const canvas = document.getElementById('matrix-bg');
 const ctx = canvas.getContext('2d');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-const chars = "0101010101ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 const drops = Array(Math.floor(canvas.width/16)).fill(1);
 function draw() {
     ctx.fillStyle = "rgba(0,0,0,0.05)";
@@ -102,7 +95,7 @@ function draw() {
     ctx.fillStyle = "#0f0";
     ctx.font = "16px monospace";
     drops.forEach((y, i) => {
-        const text = chars[Math.floor(Math.random()*chars.length)];
+        const text = String.fromCharCode(0x30A0 + Math.random() * 96);
         ctx.fillText(text, i*16, y*16);
         if(y*16 > canvas.height && Math.random() > 0.975) drops[i] = 0;
         drops[i]++;
@@ -110,8 +103,10 @@ function draw() {
 }
 setInterval(draw, 33);
 
-// --- 音声生成機能 ---
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+// --- 音声とアクション ---
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
 function playTone(f, s, d, type='sine', v=0.2) {
     const o = audioCtx.createOscillator();
     const g = audioCtx.createGain();
@@ -123,28 +118,27 @@ function playTone(f, s, d, type='sine', v=0.2) {
 }
 
 function activateGate() {
+    if (!audioCtx) audioCtx = new AudioContext();
     const now = audioCtx.currentTime;
     
-    // 扉を開ける
     document.getElementById('gate-wrap').classList.add('open');
 
-    // 1. チャイム（ピンポーン）
+    // 1. チャイム
     playTone(659, now, 0.5, 'sine'); 
     playTone(523, now + 0.4, 0.7, 'sine');
 
-    // 2. スターウォーズ・ファンファーレ（1秒後から）
+    // 2. スターウォーズ・ファンファーレ
     const sw = now + 1.2;
-    playTone(233, sw, 1.2, 'sawtooth', 0.3); // Bb
-    playTone(349, sw, 1.2, 'sawtooth', 0.3); // F
-    playTone(466, sw, 1.2, 'sawtooth', 0.3); // Bb High
+    playTone(233, sw, 1.0, 'sawtooth', 0.3);
+    playTone(349, sw, 1.0, 'sawtooth', 0.3);
+    playTone(466, sw, 1.0, 'sawtooth', 0.3);
 
-    // 3. テキストの表示
+    // 3. テキスト表示
     setTimeout(() => {
         document.getElementById('bttf-text').classList.add('show');
         document.getElementById('bless-text').classList.add('show');
-    }, 1000);
+    }, 1200);
 }
 </script>
-
 </body>
 </html>
