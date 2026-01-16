@@ -11,43 +11,38 @@
             font-family: 'Arial', sans-serif;
         }
 
-        /* 背景：マトリックス */
         #matrix { position: fixed; top: 0; left: 0; z-index: 1; }
 
-        /* 扉の奥に浮かび上がる画像 */
+        /* 最後の画像：最初は非表示 */
         #final-image {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%) scale(0.5);
             width: 70%; max-width: 600px;
             opacity: 0; z-index: 2;
             transition: all 5s ease-in-out;
-            filter: drop-shadow(0 0 20px #0f0);
+            filter: drop-shadow(0 0 30px #fff);
         }
-        /* 画像表示時のアニメーション */
         .show-image #final-image {
             opacity: 1; transform: translate(-50%, -50%) scale(1);
         }
 
-        /* 扉の設定 */
         .door-wrapper {
             position: relative; width: 100%; height: 100%;
             perspective: 1500px; z-index: 10;
         }
+        /* 扉から背景画像を削除し、黒一色に */
         .door {
             position: absolute; top: 0; width: 50%; height: 100%;
-            background-image: url('image.PNG');
-            background-size: cover; background-position: center;
+            background-color: #000; 
             border: 2px solid #0f0;
             transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1), opacity 3s;
         }
         .left { left: 0; transform-origin: left; }
         .right { right: 0; transform-origin: right; }
 
-        /* 扉が開く動作 */
         .open .left { transform: rotateY(-120deg); opacity: 0; pointer-events: none; }
         .open .right { transform: rotateY(120deg); opacity: 0; pointer-events: none; }
 
-        /* スターウォーズ風テロップ */
         .crawl-container {
             position: absolute; bottom: -100px; width: 100%;
             display: flex; justify-content: center; z-index: 5;
@@ -64,7 +59,6 @@
             100% { transform: translateY(-450%); }
         }
 
-        /* 中央のタイトルボタン */
         .center-title {
             position: absolute; top: 45%; left: 50%;
             transform: translate(-50%, -50%);
@@ -78,7 +72,6 @@
 <body id="body-tag">
 
 <canvas id="matrix"></canvas>
-
 <img src="image.PNG" id="final-image">
 
 <div class="door-wrapper" id="wrapper" onclick="startSequence()">
@@ -104,50 +97,75 @@
 </div>
 
 <script>
-    // ブラウザのWeb Audio APIを使って扉が開く「音」を生成
+    let matrixInterval;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // 最初の音：扉が開く音
     function playOpenSound() {
-        try {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 3);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 3);
+    }
+
+    // 最後の音：君に幸あれ！の後の輝かしい音
+    function playShineSound() {
+        const notes = [880, 1318, 1760]; // 高音の和音(A5, E6, A6)
+        notes.forEach(freq => {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = 'sawtooth'; // 近未来的な音
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 3);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 3);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.start();
-            osc.stop(audioCtx.currentTime + 3);
-        } catch(e) { console.log("Audio play error"); }
+            osc.stop(audioCtx.currentTime + 4);
+        });
     }
 
-    // 音声読み上げ
     function speak(msg) {
         const uttr = new SpeechSynthesisUtterance(msg);
         uttr.lang = 'ja-JP';
         uttr.rate = 1.0;
         uttr.pitch = 0.9;
+        
+        // 音声が終了した瞬間に輝かしい音を鳴らす
+        uttr.onend = () => {
+            playShineSound();
+        };
         window.speechSynthesis.speak(uttr);
     }
 
-    // メインシーケンス
     function startSequence() {
-        // 全文ナレーション
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        // 1. マトリックスを停止
+        clearInterval(matrixInterval);
+        
+        // 2. 音声読み上げ
         const message = "2026年。鍵の管理は、マイキー ログへ移行となり、人々はキューアールコードをかざすだけでキーボックスの扉を開いて大幅な管理工数を削減する事になる。さぁ〜未知への扉を開けて笑顔で待っている貴方に手を伸ばそう！ 君に幸あれ！";
-        
         speak(message);
-        playOpenSound();
         
-        // 扉を開ける
+        // 3. 扉オープン
+        playOpenSound();
         document.getElementById('wrapper').classList.add('open');
         document.getElementById('title').style.display = 'none';
 
-        // セリフの後半に合わせて画像を浮かび上がらせ、テロップを消す
+        // 4. フィナーレ（画像表示）
         setTimeout(() => {
             document.getElementById('body-tag').classList.add('show-image');
             document.getElementById('crawl-box').style.opacity = '0';
-        }, 8000); 
+        }, 12000); 
     }
 
     /* マトリックス描画 */
@@ -171,7 +189,7 @@
             drops[i]++;
         });
     }
-    setInterval(draw, 50);
+    matrixInterval = setInterval(draw, 50);
 
     window.addEventListener('resize', () => {
         canvas.width = window.innerWidth;
