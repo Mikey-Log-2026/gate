@@ -8,19 +8,17 @@
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             overflow: hidden; background-color: #000;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Helvetica Neue', 'Arial', 'Hiragino Sans', sans-serif;
         }
 
-        #matrix { position: fixed; top: 0; left: 0; z-index: 1; }
-
-        /* 最後の画像：最初は非表示 */
+        /* 最後の画像 */
         #final-image {
             position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) scale(0.5);
-            width: 70%; max-width: 600px;
+            transform: translate(-50%, -50%) scale(0.6);
+            width: 80%; max-width: 700px;
             opacity: 0; z-index: 2;
-            transition: all 5s ease-in-out;
-            filter: drop-shadow(0 0 30px #fff);
+            transition: all 6s ease-in-out;
+            filter: drop-shadow(0 0 50px rgba(255,255,255,0.8));
         }
         .show-image #final-image {
             opacity: 1; transform: translate(-50%, -50%) scale(1);
@@ -28,9 +26,8 @@
 
         .door-wrapper {
             position: relative; width: 100%; height: 100%;
-            perspective: 1500px; z-index: 10;
+            perspective: 2000px; z-index: 10;
         }
-        /* 扉から背景画像を削除し、黒一色に */
         .door {
             position: absolute; top: 0; width: 50%; height: 100%;
             background-color: #000; 
@@ -43,20 +40,23 @@
         .open .left { transform: rotateY(-120deg); opacity: 0; pointer-events: none; }
         .open .right { transform: rotateY(120deg); opacity: 0; pointer-events: none; }
 
+        /* テロップの巨大化 */
         .crawl-container {
             position: absolute; bottom: -100px; width: 100%;
             display: flex; justify-content: center; z-index: 5;
             transform-origin: 50% 100%;
-            transform: perspective(300px) rotateX(25deg);
+            transform: perspective(400px) rotateX(20deg);
         }
         .crawl-text {
             color: #ffe81f; font-weight: bold; text-align: center;
-            font-size: 1.8rem; line-height: 2.5;
-            animation: crawl 45s linear infinite;
+            font-size: 3.5rem; /* 大きく設定 */
+            line-height: 1.6;
+            animation: crawl 40s linear infinite;
+            text-shadow: 0 0 15px rgba(255, 232, 31, 0.5);
         }
         @keyframes crawl {
             0% { transform: translateY(100%); }
-            100% { transform: translateY(-450%); }
+            100% { transform: translateY(-400%); }
         }
 
         .center-title {
@@ -71,7 +71,6 @@
 </head>
 <body id="body-tag">
 
-<canvas id="matrix"></canvas>
 <img src="image.PNG" id="final-image">
 
 <div class="door-wrapper" id="wrapper" onclick="startSequence()">
@@ -92,22 +91,20 @@
 
     <div class="center-title" id="title">
         MIKEY LOG 2026<br>
-        <span style="font-size: 1rem; letter-spacing: 2px;">CLICK TO UNLOCK FUTURE</span>
+        <span style="font-size: 1.2rem; letter-spacing: 2px;">CLICK TO UNLOCK FUTURE</span>
     </div>
 </div>
 
 <script>
-    let matrixInterval;
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    // 最初の音：扉が開く音
     function playOpenSound() {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 3);
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 3);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
@@ -115,21 +112,27 @@
         osc.stop(audioCtx.currentTime + 3);
     }
 
-    // 最後の音：君に幸あれ！の後の輝かしい音
+    // 「君に幸あれ！」の後の、より工夫した輝かしい音
     function playShineSound() {
-        const notes = [880, 1318, 1760]; // 高音の和音(A5, E6, A6)
-        notes.forEach(freq => {
+        // 美しく響く「メジャーナインス」の和音
+        const frequencies = [523.25, 659.25, 783.99, 987.77, 1174.66]; // C5, E5, G5, B5, D6
+        
+        frequencies.forEach((freq, index) => {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
+            
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0, audioCtx.currentTime);
-            gain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.1);
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (index * 0.05)); // 少しずらしてアルペジオ風に
+            
+            gain.gain.setValueAtTime(0, audioCtx.currentTime + (index * 0.05));
+            gain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + (index * 0.05) + 0.1);
             gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4);
+            
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 4);
+            
+            osc.start(audioCtx.currentTime + (index * 0.05));
+            osc.stop(audioCtx.currentTime + 5);
         });
     }
 
@@ -139,7 +142,6 @@
         uttr.rate = 1.0;
         uttr.pitch = 0.9;
         
-        // 音声が終了した瞬間に輝かしい音を鳴らす
         uttr.onend = () => {
             playShineSound();
         };
@@ -149,52 +151,20 @@
     function startSequence() {
         if (audioCtx.state === 'suspended') audioCtx.resume();
 
-        // 1. マトリックスを停止
-        clearInterval(matrixInterval);
-        
-        // 2. 音声読み上げ
         const message = "2026年。鍵の管理は、マイキー ログへ移行となり、人々はキューアールコードをかざすだけでキーボックスの扉を開いて大幅な管理工数を削減する事になる。さぁ〜未知への扉を開けて笑顔で待っている貴方に手を伸ばそう！ 君に幸あれ！";
         speak(message);
         
-        // 3. 扉オープン
         playOpenSound();
         document.getElementById('wrapper').classList.add('open');
         document.getElementById('title').style.display = 'none';
 
-        // 4. フィナーレ（画像表示）
+        // フィナーレ：画像表示タイミングをセリフの長さに合わせて調整
         setTimeout(() => {
             document.getElementById('body-tag').classList.add('show-image');
+            document.getElementById('crawl-box').style.transition = 'opacity 2s';
             document.getElementById('crawl-box').style.opacity = '0';
-        }, 12000); 
+        }, 15000); 
     }
-
-    /* マトリックス描画 */
-    const canvas = document.getElementById('matrix');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const chars = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄ0123456789";
-    const fontSize = 16;
-    const columns = canvas.width / fontSize;
-    const drops = Array(Math.floor(columns)).fill(1);
-    function draw() {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#0f0";
-        ctx.font = fontSize + "px monospace";
-        drops.forEach((y, i) => {
-            const text = chars[Math.floor(Math.random() * chars.length)];
-            ctx.fillText(text, i * fontSize, y * fontSize);
-            if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
-        });
-    }
-    matrixInterval = setInterval(draw, 50);
-
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    });
 </script>
 </body>
 </html>
