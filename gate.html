@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>Mikey-log-2026 | Matrix Gate</title>
+    <title>Mikey-log-2026 | The Gate</title>
     <style>
         body { margin: 0; background: black; overflow: hidden; font-family: 'Courier New', monospace; }
         canvas { position: fixed; top: 0; left: 0; z-index: 1; }
@@ -17,11 +17,11 @@
             height: 100vh;
         }
 
-        /* 扉と中身の画像（サイズを大きく修正） */
+        /* 扉と image.PNG（大きく、中央に配置） */
         .door-box {
-            width: 400px; height: 500px; border: 3px solid #0f0;
+            width: 450px; height: 550px; border: 3px solid #0f0;
             position: relative; cursor: pointer; background: black;
-            box-shadow: 0 0 30px rgba(0,255,0,0.3);
+            box-shadow: 0 0 40px rgba(0,255,0,0.4);
         }
         .door-l, .door-r {
             position: absolute; width: 50%; height: 100%; background: #111;
@@ -33,15 +33,15 @@
         .open .door-l { transform: translateX(-100%); }
         .open .door-r { transform: translateX(100%); }
 
-        /* 中の絵 (image.PNG を大きく表示) */
+        /* image.PNG の表示 */
         #art-box {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center;
             z-index: 5; background: #000;
         }
-        #art-box img { width: 100%; height: 100%; object-fit: contain; }
+        #art-box img { width: 95%; height: 95%; object-fit: contain; }
 
-        /* ニュース風テロップ */
+        /* ニュース風テロップ（正しい内容） */
         #telop {
             position: fixed; top: 0; width: 100%; height: 50px;
             background: rgba(0, 40, 0, 0.8); border-bottom: 2px solid #0f0;
@@ -49,18 +49,18 @@
         }
         #telop span {
             display: inline-block; padding-left: 100%;
-            color: #0f0; font-size: 1.5rem; line-height: 50px; font-weight: bold;
-            animation: telop-scroll 20s linear infinite;
+            color: #0f0; font-size: 1.6rem; line-height: 50px; font-weight: bold;
+            animation: telop-scroll 18s linear infinite;
         }
         @keyframes telop-scroll { from { transform: translateX(0); } to { transform: translateX(-100%); } }
 
-        /* メッセージ */
+        /* BTTF & 君に幸あれ */
         .bttf-style {
             font-family: 'Arial Black', sans-serif; font-style: italic; font-weight: 900;
             color: #ff9e00; text-shadow: 4px 4px #ff0000;
-            font-size: 3rem; margin-top: 30px; opacity: 0; transition: 2s;
+            font-size: 3.5rem; margin-top: 30px; opacity: 0; transition: 2s;
         }
-        .bless-msg { color: #fff; font-size: 1.5rem; margin-top: 10px; opacity: 0; transition: 3s; font-weight: bold; }
+        .bless-msg { color: #fff; font-size: 2rem; margin-top: 10px; opacity: 0; transition: 3s; font-weight: bold; }
         .show { opacity: 1 !important; }
     </style>
 </head>
@@ -69,16 +69,16 @@
 <canvas id="matrix-bg"></canvas>
 
 <div id="telop">
-    <span>WELCOME TO MIKEY-LOG-2026 GALAXY. SYSTEM INITIALIZED. AUTHORIZED PERSONNEL ONLY.</span>
+    <span>MIKEY-LOG-2026 GATEWAY SYSTEM... THE FUTURE IS UNWRITTEN... MAY THE FORCE BE WITH YOU...</span>
 </div>
 
 <div id="main-ui">
     <div id="gate-wrap" class="door-box" onclick="activateGate()">
         <div id="art-box">
-            <img src="image.PNG" alt="Gate Image">
+            <img src="image.PNG" alt="Mikey's Art">
         </div>
-        <div class="door-l"><span style="color:#0f0; font-size:30px;">[</span></div>
-        <div class="door-r"><span style="color:#0f0; font-size:30px;">]</span></div>
+        <div class="door-l"><span style="color:#0f0; font-size:40px;">[</span></div>
+        <div class="door-r"><span style="color:#0f0; font-size:40px;">]</span></div>
     </div>
     
     <div id="bttf-text" class="bttf-style">BACK TO THE FUTURE!</div>
@@ -86,7 +86,7 @@
 </div>
 
 <script>
-// --- マトリックス背景 ---
+// --- マトリックス背景 (カタカナ混じり) ---
 const canvas = document.getElementById('matrix-bg');
 const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -105,7 +105,7 @@ function draw() {
 }
 setInterval(draw, 33);
 
-// --- 音声と喋り ---
+// --- 音声生成機能 ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playTone(f, s, d, type='sine', v=0.2) {
     const o = audioCtx.createOscillator();
@@ -121,20 +121,22 @@ function activateGate() {
     const now = audioCtx.currentTime;
     document.getElementById('gate-wrap').classList.add('open');
 
-    // 1. チャイム & SWファンファーレ
-    playTone(659, now, 0.5); playTone(523, now + 0.4, 0.7); // チャイム
+    // 1. チャイム (ピンポーン)
+    playTone(659, now, 0.5); 
+    playTone(523, now + 0.4, 0.7);
+
+    // 2. スター・ウォーズ風ファンファーレ (追加要素)
     const sw = now + 1.2;
-    playTone(233, sw, 1.2, 'sawtooth', 0.3); // SW
+    playTone(233, sw, 1.2, 'sawtooth', 0.3);
     playTone(349, sw, 1.2, 'sawtooth', 0.3);
     playTone(466, sw, 1.2, 'sawtooth', 0.3);
 
-    // 2. 喋り (Speech Synthesis)
-    const uttr = new SpeechSynthesisUtterance("Welcome to mikey-log-2026. 君に幸あれ");
+    // 3. セリフ読み上げ（「君に幸あれ」）
+    const uttr = new SpeechSynthesisUtterance("君に幸あれ");
     uttr.lang = 'ja-JP';
-    uttr.rate = 1.0;
     speechSynthesis.speak(uttr);
 
-    // 3. メッセージ表示
+    // 4. メッセージと画像の浮き上がり
     setTimeout(() => {
         document.getElementById('bttf-text').classList.add('show');
         document.getElementById('bless-text').classList.add('show');
